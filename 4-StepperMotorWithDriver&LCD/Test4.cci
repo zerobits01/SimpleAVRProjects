@@ -1,0 +1,8 @@
+VERSION:3 SOURCE_TIMESTAMP:4F41A06F
+NODE:I LEVEL:0 LINE:24 "C:\cvavr\inc\mega16.h"
+NODE:I LEVEL:0 LINE:25 "C:\cvavr\inc\delay.h"
+NODE:I LEVEL:0 LINE:26 "C:\cvavr\inc\string.h"
+NODE:I LEVEL:0 LINE:29 "C:\cvavr\inc\alcd.h"
+NODE:M LEVEL:0 LINE:33 "STEPPER"
+NODE:C LEVEL:0 LINE:35 "steps -> FLASH"
+NODE:F LEVEL:0 LINE:37 "main(void)"

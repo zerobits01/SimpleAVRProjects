@@ -1,0 +1,41 @@
+RAM Allocation [bytes]
+Variable                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+rx_buffer                                                                         0x0160       8
+_base_y                                                                           0x0168       4
+
+EEPROM Allocation [bytes]
+Variable                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+
+Register Allocation
+Variable                                                                          Register  Size
+------------------------------------------------------------------------------------------------
+i                                                                                 R4,R5        2
+rx_wr_index                                                                       R7           1
+rx_rd_index                                                                       R6           1
+rx_counter                                                                        R9           1
+rx_buffer_overflow                                                                R2.0      1bit
+_lcd_x                                                                            R8           1
+_lcd_y                                                                            R11          1
+_lcd_maxx                                                                         R10          1
+
+FLASH Allocation [words]
+Function                                                                          Address   Size
+------------------------------------------------------------------------------------------------
+usart_rx_isr                                                                      0x0007F     54
+read_adc                                                                          0x000B5     13
+timer0_comp_isr                                                                   0x000C2     76
+main                                                                              0x0010E     74
+_lcd_write_nibble_G100                                                            0x00158     20
+_lcd_write_data                                                                   0x0016C     12
+lcd_gotoxy                                                                        0x00178     13
+lcd_clear                                                                         0x00185     12
+lcd_putchar                                                                       0x00191     21
+lcd_puts                                                                          0x001A6     17
+lcd_init                                                                          0x001B7     45
+put_buff_G101                                                                     0x001E4     64
+_print_G101                                                                       0x00224    308
+sprintf                                                                           0x00358     52
+strlen                                                                            0x0038C     12
+strlenf                                                                           0x00398     13

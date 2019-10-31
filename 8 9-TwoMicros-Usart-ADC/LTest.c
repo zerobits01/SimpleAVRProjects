@@ -1,0 +1,167 @@
+#include <mega16.h>
+#include <delay.h>
+#include <alcd.h>
+#include <stdio.h>
+
+int i = 0;
+
+
+#define DATA_REGISTER_EMPTY (1<<UDRE)
+#define RX_COMPLETE (1<<RXC)
+#define FRAMING_ERROR (1<<FE)
+#define PARITY_ERROR (1<<UPE)
+#define DATA_OVERRUN (1<<DOR)
+
+// USART Receiver buffer
+#define RX_BUFFER_SIZE 8
+char rx_buffer[RX_BUFFER_SIZE];
+
+#if RX_BUFFER_SIZE <= 256
+unsigned char rx_wr_index=0,rx_rd_index=0;
+#else
+unsigned int rx_wr_index=0,rx_rd_index=0;
+#endif
+
+#if RX_BUFFER_SIZE < 256
+unsigned char rx_counter=0;
+#else
+unsigned int rx_counter=0;
+#endif
+
+// This flag is set on USART Receiver buffer overflow
+bit rx_buffer_overflow;
+
+// USART Receiver interrupt service routine
+interrupt [USART_RXC] void usart_rx_isr(void)
+{
+char d[16];
+char status,data;
+status=UCSRA;
+data=UDR;
+sprintf(d,"recieved data %c" , data);
+lcd_gotoxy(0,1);
+lcd_puts(d);
+if ((status & (FRAMING_ERROR | PARITY_ERROR | DATA_OVERRUN))==0)
+   {
+   rx_buffer[rx_wr_index++]=data;
+#if RX_BUFFER_SIZE == 256
+   // special case for receiver buffer size=256
+   if (++rx_counter == 0) rx_buffer_overflow=1;
+#else
+   if (rx_wr_index == RX_BUFFER_SIZE) rx_wr_index=0;
+   if (++rx_counter == RX_BUFFER_SIZE)
+      {
+      rx_counter=0;
+      rx_buffer_overflow=1;
+      }
+#endif
+   }
+}
+
+#ifndef _DEBUG_TERMINAL_IO_
+// Get a character from the USART Receiver buffer
+#define _ALTERNATE_GETCHAR_
+#pragma used+
+char getchar(void)
+{
+char data;
+while (rx_counter==0);
+data=rx_buffer[rx_rd_index++];
+#if RX_BUFFER_SIZE != 256
+if (rx_rd_index == RX_BUFFER_SIZE) rx_rd_index=0;
+#endif
+#asm("cli")
+--rx_counter;
+#asm("sei")
+return data;
+}
+#pragma used-
+#endif
+
+
+
+#define ADC_VREF_TYPE ((0<<REFS1) | (0<<REFS0) | (0<<ADLAR))
+unsigned int read_adc(unsigned char adc_input)
+{
+ADMUX=adc_input | ADC_VREF_TYPE;
+delay_us(10);
+ADCSRA|=(1<<ADSC);
+while ((ADCSRA & (1<<ADIF))==0);
+ADCSRA|=(1<<ADIF);
+return ADCW;
+}
+
+
+interrupt [TIM0_COMP] void timer0_comp_isr(void)
+{
+int adc;
+char temp[15];
+// Place your code here
+        adc = read_adc(3)/2;
+        lcd_gotoxy(0,0);
+        sprintf(temp , "Temp is : %d " , adc);
+        lcd_puts(temp);
+        if(adc < 30){
+            OCR2 = 50;
+        }
+        else if(adc < 50){OCR2 = 150;}
+        else {OCR2 = 250;}
+        i++;
+        if(i == 4){
+           i = 0;
+           PORTB = 0x01;
+        }else{
+            PORTB = PORTB << 1;
+        }
+}
+
+
+void main(void)
+{
+DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
+PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
+DDRB=(0<<DDB7) | (0<<DDB6) | (0<<DDB5) | (0<<DDB4) | (1<<DDB3) | (1<<DDB2) | (1<<DDB1) | (1<<DDB0);
+PORTB=(0<<PORTB7) | (0<<PORTB6) | (0<<PORTB5) | (0<<PORTB4) | (0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
+DDRC=(0<<DDC7) | (0<<DDC6) | (0<<DDC5) | (0<<DDC4) | (0<<DDC3) | (1<<DDC2) | (1<<DDC1) | (1<<DDC0);
+PORTC=(1<<PORTC7) | (1<<PORTC6) | (1<<PORTC5) | (1<<PORTC4) | (0<<PORTC3) | (0<<PORTC2) | (0<<PORTC1) | (0<<PORTC0);
+DDRD=(1<<DDD7) | (0<<DDD6) | (0<<DDD5) | (0<<DDD4) | (0<<DDD3) | (0<<DDD2) | (0<<DDD1) | (0<<DDD0);
+PORTD=(0<<PORTD7) | (0<<PORTD6) | (0<<PORTD5) | (0<<PORTD4) | (1<<PORTD3) | (0<<PORTD2) | (0<<PORTD1) | (0<<PORTD0);
+TCCR0=(0<<WGM00) | (0<<COM01) | (0<<COM00) | (1<<WGM01) | (0<<CS02) | (1<<CS01) | (0<<CS00);
+TCNT0=0x00;
+OCR0=0x0F;
+TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
+TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (0<<CS12) | (0<<CS11) | (0<<CS10);
+TCNT1H=0x00;
+TCNT1L=0x00;
+ICR1H=0x00;
+ICR1L=0x00;
+OCR1AH=0x00;
+OCR1AL=0x00;
+OCR1BH=0x00;
+OCR1BL=0x00;
+ASSR=0<<AS2;
+TCCR2=0x6B;
+TCNT2=0x00;
+OCR2=0x00;
+TIMSK=(0<<OCIE2) | (0<<TOIE2) | (0<<TICIE1) | (0<<OCIE1A) | (0<<OCIE1B) | (0<<TOIE1) | (1<<OCIE0) | (0<<TOIE0);
+GICR|=(1<<INT1) | (0<<INT0) | (0<<INT2);
+MCUCR=(1<<ISC11) | (0<<ISC10) | (0<<ISC01) | (0<<ISC00);
+MCUCSR=(0<<ISC2);
+GIFR=(1<<INTF1) | (0<<INTF0) | (0<<INTF2);
+UCSRA=(0<<RXC) | (0<<TXC) | (0<<UDRE) | (0<<FE) | (0<<DOR) | (0<<UPE) | (0<<U2X) | (0<<MPCM);
+UCSRB=(1<<RXCIE) | (1<<TXCIE) | (0<<UDRIE) | (1<<RXEN) | (1<<TXEN) | (0<<UCSZ2) | (0<<RXB8) | (0<<TXB8);
+UCSRC=(1<<URSEL) | (0<<UMSEL) | (0<<UPM1) | (0<<UPM0) | (0<<USBS) | (1<<UCSZ1) | (1<<UCSZ0) | (0<<UCPOL);
+UBRRH=0x00;
+UBRRL=0x0C;
+ACSR=(1<<ACD) | (0<<ACBG) | (0<<ACO) | (0<<ACI) | (0<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0);
+ADMUX=ADC_VREF_TYPE;
+ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (0<<ADPS1) | (1<<ADPS0);
+SFIOR=(0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
+SPCR=(0<<SPIE) | (0<<SPE) | (0<<DORD) | (0<<MSTR) | (0<<CPOL) | (0<<CPHA) | (0<<SPR1) | (0<<SPR0);
+TWCR=(0<<TWEA) | (0<<TWSTA) | (0<<TWSTO) | (0<<TWEN) | (0<<TWIE);
+lcd_init(16);
+#asm("sei")
+while (1)
+      {  
+      }
+}

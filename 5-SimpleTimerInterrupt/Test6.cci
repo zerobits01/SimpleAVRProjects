@@ -1,0 +1,9 @@
+VERSION:3 SOURCE_TIMESTAMP:4F449741
+NODE:I LEVEL:0 LINE:1 "C:\cvavr\inc\mega16.h"
+NODE:I LEVEL:0 LINE:4 "C:\cvavr\inc\alcd.h"
+NODE:I LEVEL:0 LINE:5 "C:\cvavr\inc\stdio.h"
+NODE:V LEVEL:0 LINE:9 "count -> R4,R5"
+NODE:V LEVEL:0 LINE:10 "sec -> R6,R7"
+NODE:V LEVEL:0 LINE:11 "ST -> RAM:????"
+NODE:F LEVEL:0 LINE:13 "timer0_comp_isr(void)"
+NODE:F LEVEL:0 LINE:26 "main(void)"

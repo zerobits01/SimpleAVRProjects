@@ -1,0 +1,143 @@
+;/*
+; * Test3.c
+; *
+; * Created: 10/1/2019 4:55:14 PM
+; * Author: zerobits01
+; */
+;
+;#include <io.h>
+;PCODE: $00000000 VOL: 0
+	#ifndef __SLEEP_DEFINED__
+;PCODE: $00000001 VOL: 0
+	#define __SLEEP_DEFINED__
+;PCODE: $00000002 VOL: 0
+	.EQU __se_bit=0x40
+;PCODE: $00000003 VOL: 0
+	.EQU __sm_mask=0xB0
+;PCODE: $00000004 VOL: 0
+	.EQU __sm_powerdown=0x20
+;PCODE: $00000005 VOL: 0
+	.EQU __sm_powersave=0x30
+;PCODE: $00000006 VOL: 0
+	.EQU __sm_standby=0xA0
+;PCODE: $00000007 VOL: 0
+	.EQU __sm_ext_standby=0xB0
+;PCODE: $00000008 VOL: 0
+	.EQU __sm_adc_noise_red=0x10
+;PCODE: $00000009 VOL: 0
+	.SET power_ctrl_reg=mcucr
+;PCODE: $0000000A VOL: 0
+	#endif
+;PCODE: $0000000B VOL: 0
+;PCODE: $0000000C VOL: 0
+;#include <delay.h>
+;#include <mega16.h>
+;
+;flash char sevseg[10] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
+;
+;void main(void)
+; 0000 000F {
+
+	.CSEG
+;PCODE: $0000000D VOL: 0
+; 0000 0010     int i;
+; 0000 0011     char cd;
+; 0000 0012 
+; 0000 0013 
+; 0000 0014     // 7seg config :
+; 0000 0015     DDRA = 0xFF;
+;	i -> R16,R17
+;	cd -> R19
+;PCODE: $0000000E VOL: 0
+;PCODE: $0000000F VOL: 0
+; 0000 0016     DDRB = 0xFF; // we are using ports B0 to B7
+;PCODE: $00000010 VOL: 0
+;PCODE: $00000011 VOL: 0
+; 0000 0017     DDRC = 0xFF; // for showing numbers on 7seg*8
+;PCODE: $00000012 VOL: 0
+;PCODE: $00000013 VOL: 0
+; 0000 0018     DDRD = 0xFF; // for shifting 7seg*8
+;PCODE: $00000014 VOL: 0
+;PCODE: $00000015 VOL: 0
+; 0000 0019 
+; 0000 001A     /*
+; 0000 001B     G F E D C B A
+; 0000 001C     powerring on with 1 and 0 off
+; 0000 001D     e.g : 1-> BC, 8-> ABCDEFG , ....
+; 0000 001E         A
+; 0000 001F       F   B
+; 0000 0020         G
+; 0000 0021       E   C
+; 0000 0022         D
+; 0000 0023     */
+; 0000 0024     // if we use int it will cast it to integer number
+; 0000 0025     /*
+; 0000 0026         00 turns on all of them
+; 0000 0027         0F turns all last 4bits
+; 0000 0028         i tested 0x01 and all of the 7 last bits turned on
+; 0000 0029         then i found that if i use ~(0x01) it will be just the
+; 0000 002A         first precios bit
+; 0000 002B     */
+; 0000 002C     PORTA.0 = 0;
+;PCODE: $00000016 VOL: 0
+;PCODE: $00000017 VOL: 0
+; 0000 002D     while (1)
+;PCODE: $00000018 VOL: 0
+; 0000 002E     {
+; 0000 002F         cd = 0x01;
+;PCODE: $00000019 VOL: 0
+;PCODE: $0000001A VOL: 0
+; 0000 0030         for (i = 0; i < 8; i++)
+;PCODE: $0000001B VOL: 0
+;PCODE: $0000001C VOL: 0
+;PCODE: $0000001D VOL: 0
+;PCODE: $0000001E VOL: 0
+;PCODE: $0000001F VOL: 0
+;PCODE: $00000020 VOL: 0
+;PCODE: $00000021 VOL: 0
+;PCODE: $00000022 VOL: 0
+;PCODE: $00000023 VOL: 0
+; 0000 0031         {
+; 0000 0032             PORTA.0 = ~PORTA.0;
+;PCODE: $00000024 VOL: 0
+;PCODE: $00000025 VOL: 0
+;PCODE: $00000026 VOL: 0
+;PCODE: $00000027 VOL: 0
+;PCODE: $00000028 VOL: 0
+;PCODE: $00000029 VOL: 0
+;PCODE: $0000002A VOL: 0
+;PCODE: $0000002B VOL: 0
+;PCODE: $0000002C VOL: 0
+;PCODE: $0000002D VOL: 0
+; 0000 0033             PORTB = sevseg[i];  // this is for 7segment
+;PCODE: $0000002E VOL: 0
+;PCODE: $0000002F VOL: 0
+;PCODE: $00000030 VOL: 0
+;PCODE: $00000031 VOL: 0
+; 0000 0034             PORTD = ~cd;        // for turning on just one cell
+;PCODE: $00000032 VOL: 0
+;PCODE: $00000033 VOL: 0
+;PCODE: $00000034 VOL: 0
+; 0000 0035             PORTC = sevseg[i];  // setting the value of 7seg-mp value
+;PCODE: $00000035 VOL: 0
+;PCODE: $00000036 VOL: 0
+;PCODE: $00000037 VOL: 0
+;PCODE: $00000038 VOL: 0
+; 0000 0036             cd = cd << 1;       // accessing the next cell of 7seg-mp
+;PCODE: $00000039 VOL: 0
+; 0000 0037             delay_ms(500);      // delay for checking the output
+;PCODE: $0000003A VOL: 0
+;PCODE: $0000003B VOL: 0
+; 0000 0038         }
+;PCODE: $0000003C VOL: 0
+;PCODE: $0000003D VOL: 0
+;PCODE: $0000003E VOL: 0
+;PCODE: $0000003F VOL: 0
+;PCODE: $00000040 VOL: 0
+; 0000 0039     }
+;PCODE: $00000041 VOL: 0
+;PCODE: $00000042 VOL: 0
+; 0000 003A }
+;PCODE: $00000043 VOL: 0
+;PCODE: $00000044 VOL: 0
+;PCODE: $00000045 VOL: 0

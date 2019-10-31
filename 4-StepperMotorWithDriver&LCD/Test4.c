@@ -1,0 +1,34 @@
+#include <mega16.h>
+#include <delay.h>
+#include <string.h>
+#include <alcd.h>
+
+#define STEPPER PORTC
+
+flash char steps[8] = {0b0011, 0b0010, 0b0110, 0b0100, 0b1100, 0b1000, 0b1001, 0b0001}; // stepper motor half steps
+
+void main(void)
+{
+int step = 0;
+
+// Port A initialization
+// Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In 
+DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
+// State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T 
+PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
+lcd_init(16);
+
+DDRC = 0x0F;
+STEPPER = 0x00;
+
+lcd_gotoxy(3,0);
+lcd_putsf("ZEROBITS01");  // this is for when we use strings directly(not using char array and pointer)
+
+while (1)
+      {
+        for(step = 0; step < 8; step++){
+            delay_ms(100);
+            STEPPER = steps[step];
+        }      
+      }
+}
